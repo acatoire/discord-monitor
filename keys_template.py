@@ -12,3 +12,6 @@ class MyDiscord:
 
     channels = {"xxxxxxxx": 123456789012345678,
                 "yyyyyyyy": 123456789012345678}
+
+    intruders = {123456789012345678: "xxxxxxxx",
+                 123456789012345670: "yyyyyyyy"}

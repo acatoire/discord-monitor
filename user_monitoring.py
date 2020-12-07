@@ -28,7 +28,7 @@ class MyClient(discord.Client):
         self.printer.start()
 
     async def on_ready(self):
-        print('Logged in as {} with id {}'.format(self.user.name, self.user.id))
+        print('Logged in as "{}" with id "{}"'.format(self.user.name, self.user.id))
 
         for guild in client.guilds:
             print("-{}".format(guild.name))
@@ -42,7 +42,7 @@ class MyClient(discord.Client):
     async def on_voice_state_update(self, member, before, after):
 
         if member == self.user:
-            name = "you"
+            name = "You"
         else:
             name = member.name
 
@@ -52,9 +52,13 @@ class MyClient(discord.Client):
 
         if before.channel is not after.channel:
             if after.channel is self.my_monitor.channel:
-                print("INTRUDER")
+                if member.id in keys.MyDiscords.intruders:
+                    print("MAJOR INTRUDER")
+                else:
+                    print("Intruder")
 
-            print("{} just enter in {} of {} guild".format(name, after.channel.name, after.channel.guild.name))
+
+            print('{} just enter in "{}" of "{}" guild'.format(name, after.channel.name, after.channel.guild.name))
 
         if (before.self_deaf is not after.self_deaf) or (before.self_mute is not after.self_mute):
             if member == self.user:
