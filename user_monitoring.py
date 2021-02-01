@@ -2,6 +2,7 @@
 
 import discord
 from discord.ext import tasks
+import requests
 
 import keys
 
@@ -15,7 +16,7 @@ class Monitor:
 
 
 def voice_status(mute, deaf):
-    str_status = "{}{}".format("🔇\t" if mute else "🔈\t\t",
+    str_status = "{}{}".format("🔇" if mute else "🔈 ",
                                "❌" if deaf else "🎧")
     return str_status
 
@@ -31,7 +32,7 @@ class MyClient(discord.Client):
         print('Logged in as "{}" with id "{}"'.format(self.user.name, self.user.id))
 
         for guild in client.guilds:
-            print("-{}".format(guild.name))
+            print("-{}[{}]".format(guild.name, guild.id))
             channel_list = []
             for channel in guild.channels:
                 if isinstance(channel, discord.VoiceChannel):
@@ -41,10 +42,23 @@ class MyClient(discord.Client):
 
     async def on_voice_state_update(self, member, before, after):
 
+        if after.channel is None:
+            if before.channel.guild.id not in keys.MyDiscords.target_guild:
+                return
+        else:
+            if after.channel.guild.id not in keys.MyDiscords.target_guild:
+                return
+
         if member == self.user:
             name = "You"
         else:
             name = member.name
+
+        avatar_url = str(member.avatar_url).replace("1024", "128")
+        avatar_id = "avatars/{}.jpg".format(member.avatar)
+
+        r = requests.get(avatar_url, allow_redirects=True)
+        open(avatar_id, 'wb').write(r.content)
 
         if member == self.user and self.my_monitor.channel != after.channel:
             self.my_monitor.channel = after.channel
@@ -56,9 +70,10 @@ class MyClient(discord.Client):
                     print("MAJOR INTRUDER")
                 else:
                     print("Intruder")
-
-
-            print('{} just enter in "{}" of "{}" guild'.format(name, after.channel.name, after.channel.guild.name))
+            if after.channel is None:
+                print('{} just quit "{}" of "{}" guild'.format(name, before.channel.name, before.channel.guild.name))
+            else:
+                print('{} just enter in "{}" of "{}" guild'.format(name, after.channel.name, after.channel.guild.name))
 
         if (before.self_deaf is not after.self_deaf) or (before.self_mute is not after.self_mute):
             if member == self.user:
@@ -75,9 +90,13 @@ class MyClient(discord.Client):
             self.user_status()
 
     def user_status(self):
-        print("You are on channel: {} with\t{}".format(self.my_monitor.channel.name,
-                                                       voice_status(self.my_monitor.self_mute,
-                                                                    self.my_monitor.self_deaf)))
+
+        if self.my_monitor.channel is None:
+            print('You are not in a voice channel anymore')
+        else:
+            print("You are on channel: {} with\t{}".format(self.my_monitor.channel.name,
+                                                           voice_status(self.my_monitor.self_mute,
+                                                                        self.my_monitor.self_deaf)))
 
 
 client = MyClient()

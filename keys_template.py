@@ -15,3 +15,5 @@ class MyDiscord:
 
     intruders = {123456789012345678: "xxxxxxxx",
                  123456789012345670: "yyyyyyyy"}
+
+    target_guild = [guilds["xxxxxxxx"]]
